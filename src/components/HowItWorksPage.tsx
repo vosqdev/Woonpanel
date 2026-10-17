@@ -41,7 +41,7 @@ export const HowItWorksPage: React.FC<Props> = ({
             </h1>
 
             <p className="text-stone-700 text-base sm:text-lg leading-relaxed">
-              Het Woondata Woonpanel slaat een brug tussen de daadwerkelijke woonwensen van inwoners en de besluitvorming van gemeenten en ontwikkelaars en bouwers.
+              Het Woondata Woonpanel slaat een brug tussen de daadwerkelijke woonwensen van inwoners en behoeften maar deze ook onder de aandacht brengen. Gericht op inwoners van Dronten, Biddinghuizen en Swifterbant, maar ook op mensen van buiten die hier mogelijk willen wonen.
             </p>
           </div>
 
