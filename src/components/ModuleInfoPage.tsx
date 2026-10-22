@@ -41,7 +41,8 @@ export const ModuleInfoPage: React.FC<Props> = ({
         { num: '05', title: 'Energie & duurzaamheid', desc: 'Warmtepomp, isolatie, zonnepanelen en aanvaardbare energielasten.' },
         { num: '06', title: 'Prioriteiten rangschikken', desc: 'Top 5 doorslaggevende criteria voor jouw volgende woning.' },
       ],
-      impact: 'Wordt direct benut voor het actualiseren van gemeentelijke Woonvisies en prestatieafspraken.',
+      impact:
+        'Wordt direct benut voor het actualiseren van woonwensen onderzoek binnen de gemeenten via woondata.com',
       ctaText: 'Start woonwensenonderzoek',
     },
     woonscan: {

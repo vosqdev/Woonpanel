@@ -71,6 +71,14 @@ export interface Question {
   pinCategories?: MapPinCategory[];
   // Conditional rendering
   condition?: QuestionCondition;
+  // Layout & input enhancements
+  columns?: number;
+  extraInput?: {
+    label: string;
+    placeholder: string;
+    helperText?: string;
+  };
+  maxSelections?: number;
 }
 
 export interface Survey {

@@ -52,10 +52,10 @@ export const HowItWorksPage: React.FC<Props> = ({
               <span>Hoe de data van de onderzoeken gebruikt wordt bij Woondata.com</span>
             </div>
             <p className="text-sm sm:text-base text-stone-700 leading-relaxed">
-              De resultaten uit de woononderzoeken blijven niet op zichzelf staan. Bij Woondata.com worden de geaggregeerde uitkomsten van het panel gecombineerd met openbare data en marktinformatie. Zo ontstaat een compleet en betrouwbaar beeld van de werkelijke behoefte en vraag.
+              De resultaten uit de woononderzoeken blijven niet op zichzelf staan deze worden gebruikt voor woondata.com. Bij Woondata.com worden de uitkomsten van het panel gecombineerd met openbare en lokale data en marktinformatie. Zo ontstaat een compleet en betrouwbaarder beeld van de werkelijke behoefte en vraag in de woningmarkt van de gemeente Dronten.
             </p>
-            <div className="pt-3 border-t border-stone-200/70 text-xs sm:text-sm text-stone-500 font-mono leading-relaxed">
-              De geaggregeerde onderzoeksresultaten worden uitsluitend via de beheeromgeving beschikbaar gesteld aan woondata om zo markt en openbare data samen te laten komen.
+            <div className="pt-3 border-t border-stone-200/70 text-xs sm:text-sm text-stone-600 font-mono leading-relaxed">
+              De onderzoeksresultaten worden uitsluitend via de beheeromgeving beschikbaar gesteld aan woondata.com om zo markt en openbare data samen te laten komen.
             </div>
           </div>
 

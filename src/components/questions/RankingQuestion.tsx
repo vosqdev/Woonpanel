@@ -18,8 +18,12 @@ export const RankingQuestion: React.FC<Props> = ({ question, value, onChange }) 
   useEffect(() => {
     if (value && value.length === initialItems.length) {
       setOrderedIds(value);
+    } else if (!value || value.length === 0) {
+      const defaultIds = initialItems.map((i) => i.id);
+      setOrderedIds(defaultIds);
+      onChange(defaultIds);
     }
-  }, [value, initialItems.length]);
+  }, [value, initialItems]);
 
   const moveItem = (index: number, direction: 'up' | 'down') => {
     const targetIndex = direction === 'up' ? index - 1 : index + 1;

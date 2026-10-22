@@ -244,13 +244,27 @@ export const SurveyRunner: React.FC<SurveyRunnerProps> = ({
 
   // Has answered current question
   const currentAnswer = currentQuestion ? answers[currentQuestion.id] : undefined;
-  const isAnswered =
-    currentAnswer !== undefined &&
-    currentAnswer !== '' &&
-    (!Array.isArray(currentAnswer) || currentAnswer.length > 0) &&
-    (typeof currentAnswer !== 'object' ||
-      (currentQuestion?.type === 'scenario' && currentAnswer.selectedScenarioId) ||
-      (currentQuestion?.type === 'map' && currentAnswer.x !== undefined));
+  const isAnswered = useMemo(() => {
+    if (currentAnswer === undefined || currentAnswer === null || currentAnswer === '') {
+      return false;
+    }
+    if (Array.isArray(currentAnswer)) {
+      return currentAnswer.length > 0;
+    }
+    if (currentQuestion?.type === 'scenario') {
+      return Boolean(currentAnswer?.selectedScenarioId);
+    }
+    if (currentQuestion?.type === 'map') {
+      return currentAnswer?.x !== undefined;
+    }
+    if (typeof currentAnswer === 'object') {
+      if ('choice' in currentAnswer) {
+        return Boolean(currentAnswer.choice);
+      }
+      return Object.keys(currentAnswer).length > 0;
+    }
+    return true;
+  }, [currentAnswer, currentQuestion?.type]);
 
   const canProceed = !currentQuestion?.required || isAnswered;
 
@@ -341,6 +355,22 @@ export const SurveyRunner: React.FC<SurveyRunnerProps> = ({
               <Save className="w-3 h-3 text-emerald-600" />
               <span>{saveStatus}</span>
             </span>
+            <span>·</span>
+            <button
+              type="button"
+              onClick={() => {
+                try {
+                  localStorage.removeItem(storageKey);
+                } catch (e) {}
+                setAnswers({});
+                setCurrentIndex(0);
+              }}
+              className="flex items-center gap-1 text-stone-400 hover:text-stone-800 transition-colors cursor-pointer"
+              title="Vragenlijst opnieuw starten"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>Herstarten</span>
+            </button>
           </div>
         </div>
 

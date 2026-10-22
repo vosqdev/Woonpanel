@@ -78,26 +78,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             Woonwensen
           </button>
-          <button
-            onClick={() => onNavigate('woonscan-info')}
-            className={`whitespace-nowrap shrink-0 transition-colors cursor-pointer py-1 ${
-              currentView === 'woonscan-info' || currentView === 'woonscan_report'
-                ? 'text-[#171717] font-semibold border-b-2 border-[#171717]'
-                : 'hover:text-[#171717]'
-            }`}
-          >
-            Woonscan
-          </button>
-          <button
-            onClick={() => onNavigate('woonopinie-info')}
-            className={`whitespace-nowrap shrink-0 transition-colors cursor-pointer py-1 ${
-              currentView === 'woonopinie-info'
-                ? 'text-[#171717] font-semibold border-b-2 border-[#171717]'
-                : 'hover:text-[#171717]'
-            }`}
-          >
-            Woonopinie
-          </button>
           {isAdminLoggedIn ? (
             <>
               <button

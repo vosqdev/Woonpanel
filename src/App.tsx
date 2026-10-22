@@ -150,10 +150,7 @@ export default function App() {
         {currentView === 'home' && (
           <>
             <Hero
-              onStartSurveyClick={() => {
-                const el = document.getElementById('onderzoeksthemas');
-                el?.scrollIntoView({ behavior: 'smooth' });
-              }}
+              onStartSurveyClick={() => handleStartCategorySurvey('woonwensen')}
               onExploreThemesClick={() => {
                 const el = document.getElementById('onderzoeksthemas');
                 el?.scrollIntoView({ behavior: 'smooth' });

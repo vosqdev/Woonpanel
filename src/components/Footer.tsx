@@ -53,22 +53,6 @@ export const Footer: React.FC<FooterProps> = ({
               </li>
               <li>
                 <button
-                  onClick={() => onNavigate('woonscan-info')}
-                  className="hover:text-white transition-colors cursor-pointer text-left"
-                >
-                  Woonscan (Huidige woonsituatie)
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onNavigate('woonopinie-info')}
-                  className="hover:text-white transition-colors cursor-pointer text-left"
-                >
-                  Woonopinie (Gebiedsontwikkeling)
-                </button>
-              </li>
-              <li>
-                <button
                   onClick={() => onNavigate('hoe-het-werkt')}
                   className="hover:text-white transition-colors cursor-pointer text-left"
                 >

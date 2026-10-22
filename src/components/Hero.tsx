@@ -44,7 +44,7 @@ export const Hero: React.FC<HeroProps> = ({
               className="inline-flex items-center gap-2 px-4.5 sm:px-5 py-3.5 text-sm font-semibold text-[#171717] bg-white hover:bg-stone-50 border border-stone-300 rounded-lg transition-colors cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
             >
               <Compass className="w-4 h-4 text-stone-600" />
-              <span>Ontdek de 3 onderzoeksthema's</span>
+              <span>Ontdek thema Woonwensen</span>
             </button>
             <button
               onClick={onOpenRegisterModal}
