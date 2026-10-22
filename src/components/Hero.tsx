@@ -15,8 +15,20 @@ export const Hero: React.FC<HeroProps> = ({
   additionalMemberCount = 0,
 }) => {
   return (
-    <section className="relative overflow-hidden pt-12 pb-16 lg:pt-16 lg:pb-24 border-b border-[#E5E7EB]">
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6">
+    <section className="relative overflow-hidden pt-12 pb-16 lg:pt-20 lg:pb-24 border-b border-[#E5E7EB]">
+      {/* Background aerial photograph */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src="https://www.image2url.com/r2/default/images/1792688899410-e426c4be-f24c-4b65-a203-06c2019b4429.jpg"
+          alt="Achtergrond Woondata Woonpanel"
+          className="w-full h-full object-cover object-[center_30%]"
+        />
+        {/* Subtielere verloopfilter zodat de luchtfoto veel beter en levendiger zichtbaar is */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#F7F8F6]/75 via-[#F7F8F6]/55 to-[#F7F8F6]/75 lg:bg-gradient-to-r lg:from-[#F7F8F6]/80 lg:via-[#F7F8F6]/50 lg:to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#F7F8F6] via-transparent to-transparent opacity-40" />
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6">
         <div className="max-w-4xl">
 
           {/* Primary Headline */}

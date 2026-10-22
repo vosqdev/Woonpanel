@@ -5,6 +5,7 @@ import {
   TrendingUp,
   ShieldCheck,
   ExternalLink,
+  MapPin,
 } from 'lucide-react';
 
 interface Props {
@@ -43,6 +44,21 @@ export const HowItWorksPage: React.FC<Props> = ({
             <p className="text-stone-700 text-base sm:text-lg leading-relaxed">
               Het Woondata Woonpanel slaat een brug tussen de daadwerkelijke woonwensen van inwoners en behoeften maar deze ook onder de aandacht brengen. Gericht op inwoners van Dronten, Biddinghuizen en Swifterbant, maar ook op mensen van buiten die hier mogelijk willen wonen.
             </p>
+
+            {/* Lokaal Initiatief Gemeente Dronten */}
+            <div className="p-5 sm:p-6 rounded-2xl bg-[#C4F000]/15 border border-[#C4F000] flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-[#C4F000] text-[#171717] flex items-center justify-center shrink-0 font-bold shadow-2xs">
+                <MapPin className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm sm:text-base font-bold text-[#171717]">
+                  Lokaal initiatief binnen de gemeente Dronten
+                </h3>
+                <p className="text-xs sm:text-sm text-stone-700 leading-relaxed">
+                  Het Woondata Woonpanel betreft een specifiek lokaal initiatief in en voor de gemeente Dronten. Samen met inwoners uit Dronten, Biddinghuizen en Swifterbant zorgen we dat de stem uit onze eigen dorpen en kernen écht doorklinkt bij beleidsmakers, woningcorporaties en ontwikkelaars. Zo bouwen we samen aan een leefbare gemeente die past bij de wensen van vandaag en morgen.
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Verbindingsblok: Hoe data gebruikt wordt bij Woondata.com */}

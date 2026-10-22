@@ -1,6 +1,6 @@
 {
   "name": "WOONDATA | BEWONERSPANEL",
-  "description": "Onafhankelijk online bewonersonderzoek platform voor woonwensen, woonervaringen (Woonscan) en gebiedsontwikkeling (Woonopinie) ten behoeve van gemeenten, woningcorporaties en leefomgeving.",
+  "description": "Het onafhankelijke bewonerspanel binnen de gemeente Dronten. Wij verzamelen woonwensen, woonervaringen en buurtmeningen om volkshuisvesting en leefomgeving te verbeteren.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

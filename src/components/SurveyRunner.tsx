@@ -24,6 +24,8 @@ import {
   Sparkles,
   BarChart3,
   RotateCcw,
+  UserPlus,
+  PartyPopper,
 } from 'lucide-react';
 
 interface SurveyRunnerProps {
@@ -31,6 +33,7 @@ interface SurveyRunnerProps {
   onBackToHome: () => void;
   onFinishSubmission: (submission: SurveySubmission, woonscanSummary?: WoonscanSummary) => void;
   onViewWoonscanReport?: (summary: WoonscanSummary) => void;
+  onOpenRegisterModal?: () => void;
 }
 
 export const SurveyRunner: React.FC<SurveyRunnerProps> = ({
@@ -38,6 +41,7 @@ export const SurveyRunner: React.FC<SurveyRunnerProps> = ({
   onBackToHome,
   onFinishSubmission,
   onViewWoonscanReport,
+  onOpenRegisterModal,
 }) => {
   const storageKey = `woondata_survey_${survey.id}`;
 
@@ -268,24 +272,118 @@ export const SurveyRunner: React.FC<SurveyRunnerProps> = ({
 
   const canProceed = !currentQuestion?.required || isAnswered;
 
+  const triggerConfettiCelebration = () => {
+    try {
+      confetti({
+        particleCount: 110,
+        spread: 80,
+        origin: { y: 0.55 },
+        colors: ['#C4F000', '#171717', '#10B981', '#3B82F6', '#F59E0B', '#EC4899'],
+      });
+
+      setTimeout(() => {
+        confetti({
+          particleCount: 60,
+          angle: 60,
+          spread: 60,
+          origin: { x: 0.05, y: 0.65 },
+          colors: ['#C4F000', '#10B981', '#ffffff'],
+        });
+        confetti({
+          particleCount: 60,
+          angle: 120,
+          spread: 60,
+          origin: { x: 0.95, y: 0.65 },
+          colors: ['#C4F000', '#171717', '#ffffff'],
+        });
+      }, 250);
+    } catch (e) {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    if (isCompleted) {
+      triggerConfettiCelebration();
+    }
+  }, [isCompleted]);
+
   // Completion View (Required by prompt D)
   if (isCompleted) {
     return (
       <main className="min-h-[75vh] py-16 px-4 sm:px-6 flex items-center justify-center">
-        <div className="max-w-2xl w-full bg-white rounded-3xl border border-stone-200 p-8 sm:p-12 text-center shadow-lg">
+        <div className="max-w-2xl w-full bg-white rounded-3xl border border-stone-200 p-8 sm:p-12 text-center shadow-lg animate-in fade-in zoom-in-95 duration-200">
+          
+          {/* Confetti Thank You Badge */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#C4F000]/25 text-stone-900 border border-[#C4F000] text-xs font-bold mb-6 font-mono uppercase tracking-wider">
+            <PartyPopper className="w-4 h-4 text-[#171717]" />
+            <span>🎉 Bedankt voor jouw deelname!</span>
+          </div>
+
           <div className="w-16 h-16 rounded-2xl bg-[#C4F000] text-[#171717] flex items-center justify-center mx-auto mb-6 shadow-sm">
             <CheckCircle2 className="w-10 h-10 stroke-[2.5]" />
           </div>
 
           {/* Required Exact Title */}
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#171717] tracking-tight mb-4">
-            Bedankt! Jouw mening helpt wonen vooruit.
+            Bedankt! Jouw mening helpt wonen in Dronten vooruit.
           </h2>
 
           {/* Required Exact Subtitle */}
-          <p className="text-stone-600 text-base sm:text-lg leading-relaxed mb-8 max-w-xl mx-auto">
+          <p className="text-stone-600 text-base sm:text-lg leading-relaxed mb-4 max-w-xl mx-auto">
             Dankzij jouw bijdrage krijgen we beter inzicht in hoe inwoners willen wonen en wat zij belangrijk vinden in hun leefomgeving.
           </p>
+
+          {/* Confetti button */}
+          <div className="mb-6">
+            <button
+              onClick={triggerConfettiCelebration}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-medium transition-colors cursor-pointer"
+            >
+              <span>🎊 Vier jouw afronding opnieuw (confetti)</span>
+            </button>
+          </div>
+
+          {/* Verwijzing naar inschrijven als panellid */}
+          <div className="p-6 sm:p-7 bg-stone-900 text-white rounded-2xl border border-stone-800 text-left my-6 shadow-sm space-y-4">
+            <div className="flex items-start gap-4">
+              <div className="w-11 h-11 rounded-xl bg-[#C4F000] text-[#171717] flex items-center justify-center shrink-0 font-bold shadow-xs">
+                <UserPlus className="w-5 h-5" />
+              </div>
+              <div className="flex-1 space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-mono uppercase tracking-wider text-[#C4F000] font-semibold">
+                    Word vast panellid
+                  </span>
+                  <span className="text-stone-500">·</span>
+                  <span className="text-xs text-stone-300">Gemeente Dronten</span>
+                </div>
+                <h3 className="text-base sm:text-lg font-bold text-white">
+                  Wil je vaker meebeslissen over wonen en projecten in jouw gemeente?
+                </h3>
+                <p className="text-xs text-stone-300 leading-relaxed">
+                  Schrijf je eenvoudig in voor het Woondata Woonpanel. Je ontvangt periodiek een korte uitnodiging wanneer er nieuwe plannen of onderzoeken zijn voor Dronten, Biddinghuizen en Swifterbant.
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-stone-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="text-xs text-stone-400 flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Geheel vrijwillig · 100% anoniem conform AVG</span>
+              </div>
+              {onOpenRegisterModal && (
+                <button
+                  onClick={onOpenRegisterModal}
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#C4F000] hover:bg-[#b5de00] active:scale-[0.99] text-[#171717] rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs whitespace-nowrap"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>Inschrijven als panellid</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
 
           <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 text-xs text-stone-600 mb-8 max-w-md mx-auto flex items-center gap-2.5 text-left">
             <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />

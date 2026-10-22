@@ -23,7 +23,7 @@ export const Footer: React.FC<FooterProps> = ({
           <div className="space-y-4">
             <WoonpanelLogo variant="dark" size="sm" />
             <p className="text-sm text-stone-400 leading-relaxed">
-              Het onafhankelijke bewonerspanel van Nederland. Wij verzamelen woonwensen,
+              Het onafhankelijke bewonerspanel binnen de gemeente Dronten. Wij verzamelen woonwensen,
               woonervaringen en buurtmeningen om volkshuisvesting en leefomgeving te verbeteren.
             </p>
             <div className="pt-2">

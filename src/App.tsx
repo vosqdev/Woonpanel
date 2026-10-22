@@ -170,6 +170,7 @@ export default function App() {
             onBackToHome={() => navigateTo('home')}
             onFinishSubmission={handleFinishSubmission}
             onViewWoonscanReport={handleViewWoonscanReport}
+            onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
           />
         )}
 
