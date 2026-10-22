@@ -438,27 +438,33 @@ export const AdminDashboard: React.FC<Props> = ({
                       {panelMembers.map((m, idx) => (
                         <tr key={m.id || idx} className="hover:bg-stone-50/70">
                           <td className="py-3.5 px-6 font-medium text-[#171717]">
-                            <div className="font-bold">{m.fullName}</div>
+                            <div className="font-bold">{m.fullName || `${m.firstName || ''} ${m.lastName || ''}`.trim() || 'Panellid'}</div>
                             <div className="text-[11px] text-stone-500 font-mono">{m.email}</div>
                           </td>
                           <td className="py-3.5 px-6 text-stone-600">
-                            <div>{m.city} ({m.postalCode})</div>
+                            <div>{m.city ? `${m.city} ${m.postalCode ? `(${m.postalCode})` : ''}` : 'Gemeente Dronten'}</div>
                             {m.neighborhood && <div className="text-[11px] text-stone-400">{m.neighborhood}</div>}
                           </td>
                           <td className="py-3.5 px-6 text-stone-600">
-                            <span className="capitalize">{m.housingType?.replace('_', ' ')}</span> · {m.ageCategory} jr
+                            {m.housingType ? (
+                              <><span className="capitalize">{m.housingType?.replace('_', ' ')}</span> · {m.ageCategory} jr</>
+                            ) : (
+                              <span className="text-stone-400">Inwoner / Panellid</span>
+                            )}
                           </td>
                           <td className="py-3.5 px-6 text-stone-600">
-                            <div className="flex flex-wrap gap-1">
-                              {(m.interests || []).map((int: string) => (
-                                <span key={int} className="px-1.5 py-0.5 rounded bg-stone-100 text-[10px] font-mono text-stone-700 capitalize">
-                                  {int}
-                                </span>
-                              ))}
-                            </div>
+                            {m.newsletterOptIn !== false ? (
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-mono font-semibold">
+                                Updates actief
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-full bg-stone-100 text-stone-500 text-[10px] font-mono">
+                                Geen updates
+                              </span>
+                            )}
                           </td>
                           <td className="py-3.5 px-6 text-stone-500 font-mono text-[11px]">
-                            {new Date(m.registeredAt).toLocaleDateString('nl-NL')}
+                            {m.registeredAt ? new Date(m.registeredAt).toLocaleDateString('nl-NL') : '-'}
                           </td>
                         </tr>
                       ))}

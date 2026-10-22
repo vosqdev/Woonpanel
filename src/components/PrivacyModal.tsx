@@ -78,7 +78,7 @@ export const PrivacyModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 <span>Geen Dataverkoop</span>
               </div>
               <p className="text-xs text-stone-500">
-                Data wordt uitsluitend gebruikt voor maatschappelijke doelen van gemeenten en corporaties, nooit voor commerciële advertentiedoeleinden.
+                Gegevens worden niet verkocht of gedeeld met andere partijen. Data wordt uitsluitend gebruikt voor maatschappelijke doelen van gemeenten en woningcorporaties.
               </p>
             </div>
           </div>
