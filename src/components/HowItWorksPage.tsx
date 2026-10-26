@@ -223,10 +223,10 @@ export const HowItWorksPage: React.FC<Props> = ({
               </div>
               <div className="space-y-1">
                 <div className="text-xs font-bold text-[#171717] uppercase font-mono tracking-wider">
-                  Veilig & Geaggregeerd
+                  100% Veilig & Altijd Anoniem
                 </div>
-                <p className="text-xs text-stone-600 leading-relaxed">
-                  Deelname is altijd anoniem. Data wordt nooit op individueel niveau gedeeld, maar uitsluitend als geaggregeerde trend- en marktinformatie via de beveiligde Woondata-koppeling.
+                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
+                  Meedoen is altijd anoniem: niemand kan zien wat jij persoonlijk hebt ingevuld. We voegen alle reacties samen op één hoop om te laten zien wat inwoners belangrijk vinden. Zo blijven jouw gegevens altijd privé en veilig via Woondata.
                 </p>
               </div>
             </div>
