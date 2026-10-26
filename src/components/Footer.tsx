@@ -56,7 +56,7 @@ export const Footer: React.FC<FooterProps> = ({
                   onClick={() => onNavigate('hoe-het-werkt')}
                   className="hover:text-white transition-colors cursor-pointer text-left"
                 >
-                  Hoe het panel werkt
+                  Hoe Woonpanel werkt
                 </button>
               </li>
               {onOpenRegisterModal && (
