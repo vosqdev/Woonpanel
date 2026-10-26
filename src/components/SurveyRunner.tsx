@@ -210,7 +210,14 @@ export const SurveyRunner: React.FC<SurveyRunnerProps> = ({
     };
   };
 
-  const handleSubmitSurvey = () => {
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const handleSubmitSurvey = async () => {
+    if (isSubmitting) return; // Prevent double-clicks
+    setIsSubmitting(true);
+    setSubmitError(null);
+
     let summary: WoonscanSummary | undefined;
     if (survey.category === 'woonscan') {
       summary = calculateWoonscanScores(answers);
@@ -253,35 +260,45 @@ export const SurveyRunner: React.FC<SurveyRunnerProps> = ({
       responses: structuredResponses,
     };
 
-    // Trigger celebratory confetti
     try {
-      confetti({
-        particleCount: 80,
-        spread: 60,
-        origin: { y: 0.6 },
-        colors: ['#C4F000', '#171717', '#10B981', '#3B82F6'],
-      });
-    } catch (e) {
-      // ignore
-    }
+      // Secure opslaan in Firebase Firestore via Netlify Function & Firebase Admin SDK
+      const res = await saveSurveySubmission(submission);
 
-    // Secure opslaan in Firebase Firestore via Netlify Function & Firebase Admin SDK
-    saveSurveySubmission(submission)
-      .then((res) => {
+      if (res.success) {
         if (res.submissionNumber) {
           setSubmissionNumber(res.submissionNumber);
         }
-      })
-      .catch((err) => {
-        console.error('Firebase save error in SurveyRunner:', err);
-      });
 
-    setIsCompleted(true);
-    onFinishSubmission(submission, summary);
-    try {
-      localStorage.removeItem(storageKey);
-    } catch (e) {
-      // ignore
+        // Trigger celebratory confetti only on verified storage
+        try {
+          confetti({
+            particleCount: 80,
+            spread: 60,
+            origin: { y: 0.6 },
+            colors: ['#C4F000', '#171717', '#10B981', '#3B82F6'],
+          });
+        } catch {
+          // ignore
+        }
+
+        setIsCompleted(true);
+        onFinishSubmission(submission, summary);
+        try {
+          localStorage.removeItem(storageKey);
+        } catch {
+          // ignore
+        }
+      } else {
+        setSubmitError(
+          res.error || 'Er is een serverfout opgetreden bij het opslaan in Firebase Firestore.'
+        );
+      }
+    } catch (err: any) {
+      setSubmitError(
+        err?.message || 'Geen verbinding met de server. Controleer je internetverbinding en probeer het opnieuw.'
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -636,14 +653,30 @@ export const SurveyRunner: React.FC<SurveyRunnerProps> = ({
           </div>
         </div>
 
+        {/* Server Error Notice if submission failed */}
+        {submitError && (
+          <div className="mb-4 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-sm flex items-start gap-3">
+            <div className="w-5 h-5 rounded-full bg-amber-200 text-amber-800 flex items-center justify-center shrink-0 font-bold text-xs mt-0.5">
+              !
+            </div>
+            <div className="flex-1 space-y-1">
+              <p className="font-bold">Opslaan in database mislukt</p>
+              <p className="text-xs text-amber-800 leading-relaxed">{submitError}</p>
+              <p className="text-xs text-stone-500">
+                Jouw antwoorden zijn niet verloren gegaan. Klik hieronder op &apos;Afronden &amp; versturen&apos; om het opnieuw te proberen.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Footer Navigation Buttons */}
         <div className="flex items-center justify-between gap-4 pt-2">
           <button
             type="button"
             onClick={handlePrev}
-            disabled={currentIndex === 0}
+            disabled={currentIndex === 0 || isSubmitting}
             className={`inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-colors cursor-pointer ${
-              currentIndex === 0
+              currentIndex === 0 || isSubmitting
                 ? 'opacity-0 pointer-events-none'
                 : 'bg-white hover:bg-stone-100 text-stone-800 border border-stone-200'
             }`}
@@ -657,7 +690,8 @@ export const SurveyRunner: React.FC<SurveyRunnerProps> = ({
               <button
                 type="button"
                 onClick={handleSkip}
-                className="px-4 py-3 text-sm font-medium text-stone-500 hover:text-stone-900 cursor-pointer"
+                disabled={isSubmitting}
+                className="px-4 py-3 text-sm font-medium text-stone-500 hover:text-stone-900 cursor-pointer disabled:opacity-50"
               >
                 Vraag overslaan
               </button>
@@ -666,21 +700,30 @@ export const SurveyRunner: React.FC<SurveyRunnerProps> = ({
             <button
               type="button"
               onClick={handleNext}
-              disabled={!canProceed}
+              disabled={!canProceed || isSubmitting}
               className={`inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
-                canProceed
+                canProceed && !isSubmitting
                   ? 'bg-[#171717] hover:bg-black text-white shadow-xs active:scale-[0.99]'
                   : 'bg-stone-200 text-stone-400 cursor-not-allowed'
               }`}
             >
-              <span>
-                {currentIndex === activeQuestions.length - 1
-                  ? 'Afronden & versturen'
-                  : 'Volgende vraag'}
-              </span>
-              <ArrowRight
-                className={`w-4 h-4 ${canProceed ? 'text-[#C4F000]' : 'text-stone-400'}`}
-              />
+              {isSubmitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Bezig met opslaan...</span>
+                </>
+              ) : (
+                <>
+                  <span>
+                    {currentIndex === activeQuestions.length - 1
+                      ? 'Afronden & versturen'
+                      : 'Volgende vraag'}
+                  </span>
+                  <ArrowRight
+                    className={`w-4 h-4 ${canProceed ? 'text-[#C4F000]' : 'text-stone-400'}`}
+                  />
+                </>
+              )}
             </button>
           </div>
         </div>

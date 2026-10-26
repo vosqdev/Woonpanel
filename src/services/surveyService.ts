@@ -18,7 +18,7 @@ const PANEL_MEMBERS_COLLECTION = 'panel_members';
 
 /**
  * Saves a survey or inquiry submission to Firebase Firestore via Netlify Functions
- * using the Firebase Admin SDK. Also handles resilience caching in localStorage.
+ * using the Firebase Admin SDK. Returns true ONLY if confirmed by server.
  */
 export async function saveSurveySubmission(
   submission: SurveySubmission
@@ -26,14 +26,35 @@ export async function saveSurveySubmission(
   let submissionNumber: string | undefined = submission.submissionNumber;
 
   try {
-    // Secure submission through Netlify serverless function
-    const response = await fetch('/.netlify/functions/submit-survey', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(submission),
-    });
+    // Attempt via standard /api/ endpoint, with direct netlify function endpoint fallback
+    let response: Response;
+    try {
+      response = await fetch('/api/submit-survey', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submission),
+      });
+      // If 404 on /api/ rewrite, try direct Netlify path
+      if (response.status === 404) {
+        response = await fetch('/.netlify/functions/submit-survey', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(submission),
+        });
+      }
+    } catch {
+      response = await fetch('/.netlify/functions/submit-survey', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submission),
+      });
+    }
 
     if (response.ok) {
       const result = await response.json();
@@ -44,7 +65,7 @@ export async function saveSurveySubmission(
         submissionNumber,
       };
 
-      // Update local storage cache
+      // Update local storage cache for offline viewing
       try {
         const stored = localStorage.getItem('woondata_cached_submissions');
         const list = stored ? JSON.parse(stored) : [];
@@ -64,45 +85,25 @@ export async function saveSurveySubmission(
       };
     } else {
       const errorJson = await response.json().catch(() => ({}));
-      console.warn('Netlify function submission notice:', response.status, errorJson);
-      throw new Error(errorJson.error || `Status code ${response.status}`);
+      const errorMessage =
+        errorJson.error ||
+        `Server gaf statuscode ${response.status} (${response.statusText})`;
+      console.error('[SurveyService] Opslaan in Firestore mislukt:', response.status, errorJson);
+
+      return {
+        success: false,
+        id: submission.id,
+        error: errorMessage,
+      };
     }
   } catch (err: any) {
-    console.warn(
-      'Netlify function unavailable (dev mode or offline), saving to local resilience cache:',
-      err
-    );
-
-    // Generate fallback submission number if server could not be reached
-    if (!submissionNumber) {
-      const year = new Date().getFullYear();
-      const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-      submissionNumber = `WP-${year}-${code}`;
-    }
-
-    const fallbackSubmission: SurveySubmission = {
-      ...submission,
-      submissionNumber,
-    };
-
-    // Resilient local caching
-    try {
-      const stored = localStorage.getItem('woondata_cached_submissions');
-      const list = stored ? JSON.parse(stored) : [];
-      list.unshift({ ...fallbackSubmission, pendingSync: true });
-      localStorage.setItem(
-        'woondata_cached_submissions',
-        JSON.stringify(list.slice(0, 100))
-      );
-    } catch {
-      // ignore
-    }
-
+    console.error('[SurveyService] Netwerk- of verbindingsfout:', err);
     return {
-      success: true,
+      success: false,
       id: submission.id,
-      submissionNumber,
-      error: err?.message,
+      error:
+        err?.message ||
+        'Kan geen verbinding maken met de server. Controleer je internetverbinding.',
     };
   }
 }
@@ -114,13 +115,33 @@ export async function savePanelMember(
   member: PanelMemberRegistration
 ): Promise<{ success: boolean; id: string; error?: string }> {
   try {
-    const response = await fetch('/.netlify/functions/register-panel-member', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(member),
-    });
+    let response: Response;
+    try {
+      response = await fetch('/api/register-member', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(member),
+      });
+      if (response.status === 404) {
+        response = await fetch('/.netlify/functions/register-panel-member', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(member),
+        });
+      }
+    } catch {
+      response = await fetch('/.netlify/functions/register-panel-member', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(member),
+      });
+    }
 
     if (response.ok) {
       const result = await response.json();
@@ -142,20 +163,20 @@ export async function savePanelMember(
 
       return { success: true, id: result.id || member.id };
     }
-    throw new Error('Aanmelding via API mislukt');
+
+    const errData = await response.json().catch(() => ({}));
+    return {
+      success: false,
+      id: member.id,
+      error: errData.error || 'Aanmelding via server mislukt.',
+    };
   } catch (err: any) {
-    console.warn('Panel member API notice, fallback to local storage:', err);
-
-    try {
-      const stored = localStorage.getItem('woondata_panel_members');
-      const list = stored ? JSON.parse(stored) : [];
-      list.push({ ...member, pendingSync: true });
-      localStorage.setItem('woondata_panel_members', JSON.stringify(list));
-    } catch {
-      // ignore
-    }
-
-    return { success: true, id: member.id };
+    console.error('[SurveyService] Fout bij aanmelden panellid:', err);
+    return {
+      success: false,
+      id: member.id,
+      error: err?.message || 'Geen verbinding met de server.',
+    };
   }
 }
 

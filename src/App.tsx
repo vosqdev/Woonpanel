@@ -122,11 +122,6 @@ export default function App() {
   };
 
   const handleFinishSubmission = (submission: SurveySubmission, summary?: WoonscanSummary) => {
-    // Ensure saved to Firebase Firestore
-    saveSurveySubmission(submission).catch((err) => {
-      console.error('Save to Firestore failed in App:', err);
-    });
-
     // Increment participant count in active surveys
     setSurveys((prev) =>
       prev.map((s) => {

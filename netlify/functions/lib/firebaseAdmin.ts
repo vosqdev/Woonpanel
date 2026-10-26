@@ -17,10 +17,34 @@ let cachedDb: Firestore | null = null;
 let cachedApp: App | null = null;
 
 /**
+ * Robustly cleans and formats a private key string from environment variables.
+ * Handles:
+ *  - Surrounding quotes ("..." or '...') often added by copy-pasting into Netlify UI
+ *  - Literal escaped newlines (\n) converted to real newlines
+ *  - Windows carriage returns (\r\n)
+ */
+function sanitizePrivateKey(rawKey: string): string {
+  let key = rawKey.trim();
+
+  // Strip wrapping double or single quotes
+  if (
+    (key.startsWith('"') && key.endsWith('"')) ||
+    (key.startsWith("'") && key.endsWith("'"))
+  ) {
+    key = key.slice(1, -1);
+  }
+
+  // Replace literal '\n' sequences with real newlines
+  key = key.replace(/\\n/g, '\n').replace(/\r\n/g, '\n');
+
+  return key.trim();
+}
+
+/**
  * Initializes and returns the Firebase Admin App instance using Netlify Environment Variables.
- * Supports either:
- *  1. FIREBASE_SERVICE_ACCOUNT (full JSON string)
- *  2. FIREBASE_CLIENT_EMAIL + FIREBASE_PRIVATE_KEY (+ optional FIREBASE_PROJECT_ID)
+ * Supports:
+ *  1. FIREBASE_CLIENT_EMAIL + FIREBASE_PRIVATE_KEY (+ optional FIREBASE_PROJECT_ID)
+ *  2. FIREBASE_SERVICE_ACCOUNT (full JSON string)
  *  3. Application Default Credentials (GCP environment)
  */
 export function getFirebaseAdminApp(): App {
@@ -35,37 +59,48 @@ export function getFirebaseAdminApp(): App {
   }
 
   const projectId =
-    process.env.FIREBASE_PROJECT_ID || DEFAULT_FIREBASE_PROJECT_ID;
+    (process.env.FIREBASE_PROJECT_ID || DEFAULT_FIREBASE_PROJECT_ID).trim();
 
   let credential: Credential | null = null;
 
-  // Option 1: Full JSON string in FIREBASE_SERVICE_ACCOUNT
-  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+  // Option 1: Individual variables (standard Netlify setup)
+  if (
+    process.env.FIREBASE_CLIENT_EMAIL &&
+    process.env.FIREBASE_PRIVATE_KEY
+  ) {
+    try {
+      const clientEmail = process.env.FIREBASE_CLIENT_EMAIL.trim();
+      const privateKey = sanitizePrivateKey(process.env.FIREBASE_PRIVATE_KEY);
+
+      credential = cert({
+        projectId,
+        clientEmail,
+        privateKey,
+      });
+    } catch (err: any) {
+      console.error(
+        '[FirebaseAdmin] Fout bij verwerken van FIREBASE_PRIVATE_KEY:',
+        err?.message || err
+      );
+      throw new Error(
+        `Ongeldige FIREBASE_PRIVATE_KEY indeling: ${err?.message || 'controleer begin/eind van de sleutel'}`
+      );
+    }
+  }
+  // Option 2: Full JSON string in FIREBASE_SERVICE_ACCOUNT
+  else if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     try {
       const sa = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
       credential = cert(sa);
     } catch (err: any) {
       console.error(
-        'Failed to parse FIREBASE_SERVICE_ACCOUNT JSON:',
+        '[FirebaseAdmin] Fout bij parsen van FIREBASE_SERVICE_ACCOUNT JSON:',
         err?.message || err
       );
       throw new Error(
         'Ongeldige FIREBASE_SERVICE_ACCOUNT JSON in omgevingsvariabelen.'
       );
     }
-  }
-  // Option 2: Individual variables
-  else if (
-    process.env.FIREBASE_CLIENT_EMAIL &&
-    process.env.FIREBASE_PRIVATE_KEY
-  ) {
-    // Replace escaped newlines if passed as single-line string with '\n'
-    const privateKey = process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n');
-    credential = cert({
-      projectId,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL.trim(),
-      privateKey: privateKey,
-    });
   } else {
     // Option 3: Fallback to application default credentials (if available in cloud)
     try {
@@ -77,7 +112,7 @@ export function getFirebaseAdminApp(): App {
 
   if (!credential) {
     throw new Error(
-      'Firebase Admin credentials ontbreken. Stel FIREBASE_SERVICE_ACCOUNT of FIREBASE_CLIENT_EMAIL en FIREBASE_PRIVATE_KEY in in Netlify Environment Variables.'
+      'Firebase Admin credentials ontbreken. Controleer of FIREBASE_CLIENT_EMAIL en FIREBASE_PRIVATE_KEY zijn ingesteld in Netlify Environment Variables.'
     );
   }
 
@@ -90,8 +125,9 @@ export function getFirebaseAdminApp(): App {
 }
 
 /**
- * Returns a Firestore instance connected to the dedicated database
- * 'ai-studio-woonpanelwoondat-82310a5d-1984-446d-bdb2-bdda046470e5'.
+ * Returns a Firestore instance connected to the configured database.
+ * Supports both named databases (e.g. ai-studio-woonpanelwoondat-82310a5d-1984-446d-bdb2-bdda046470e5)
+ * and the default database ('(default)').
  */
 export function getFirebaseAdminFirestore(): Firestore {
   if (cachedDb) {
@@ -99,11 +135,18 @@ export function getFirebaseAdminFirestore(): Firestore {
   }
 
   const app = getFirebaseAdminApp();
-  const databaseId =
-    process.env.FIRESTORE_DATABASE_ID || DEFAULT_FIRESTORE_DATABASE_ID;
+  const rawDatabaseId = (
+    process.env.FIRESTORE_DATABASE_ID || DEFAULT_FIRESTORE_DATABASE_ID
+  ).trim();
 
-  // Connect to the specific named Firestore database
-  cachedDb = getFirestore(app, databaseId);
+  // If set to (default) or left empty, connect to default database.
+  // Otherwise connect to the specified named database.
+  if (!rawDatabaseId || rawDatabaseId === '(default)') {
+    cachedDb = getFirestore(app);
+  } else {
+    cachedDb = getFirestore(app, rawDatabaseId);
+  }
+
   return cachedDb;
 }
 
