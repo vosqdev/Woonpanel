@@ -13,6 +13,25 @@ const CORS_HEADERS = {
 
 const TARGET_COLLECTION = 'submissions';
 
+interface CachedSubmission {
+  id: string;
+  submissionNumber: string;
+  submittedAt: string;
+  timestamp: number;
+}
+
+// In-memory cache for rapid double-click & duplicate suppression (<1ms latency, 0 database reads)
+const recentSubmissionsCache = new Map<string, CachedSubmission>();
+
+function cleanRecentSubmissionsCache() {
+  const cutoff = Date.now() - 5 * 60 * 1000;
+  for (const [key, value] of recentSubmissionsCache.entries()) {
+    if (value.timestamp < cutoff) {
+      recentSubmissionsCache.delete(key);
+    }
+  }
+}
+
 // Generate a readable, unique human reference code (e.g., WP-2026-X8K2M9)
 function generateSubmissionNumber(): string {
   const year = new Date().getFullYear();
@@ -53,7 +72,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
   }
 
   try {
-    // 1. Check payload presence and size limit (max 500KB)
+    // 1. Check payload presence and size limit (max 512KB)
     if (!event.body) {
       return {
         statusCode: 400,
@@ -92,8 +111,6 @@ export const handler: Handler = async (event: HandlerEvent) => {
 
     // 2. Honeypot check (anti-bot)
     if (payload._hp || payload.website_honeypot) {
-      // Silently discard spam submission with 200 OK to confuse bots
-      console.warn('Spam submission caught via honeypot field');
       return {
         statusCode: 200,
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
@@ -169,7 +186,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
         ? new Date(payload.submittedAt).toISOString()
         : new Date().toISOString();
 
-    // Prepare structured questions & answers list if available
+    // Prepare structured questions & answers list
     const rawResponses = Array.isArray(payload.responses)
       ? payload.responses
       : [];
@@ -186,32 +203,35 @@ export const handler: Handler = async (event: HandlerEvent) => {
       `${surveyId}:${JSON.stringify(answers)}`
     );
 
-    // Client metadata
-    const userAgent = (event.headers['user-agent'] || '').slice(0, 255);
-    const clientIp =
-      event.headers['x-forwarded-for'] ||
-      event.headers['client-ip'] ||
-      'unknown';
-    const ipHash = sha256(clientIp).substring(0, 16); // Anonymized hash conforming with AVG
+    // In-memory instant duplicate / double-click interception (0ms, 0 Firestore reads)
+    cleanRecentSubmissionsCache();
+    const cachedByHash = recentSubmissionsCache.get(duplicateHash);
+    if (cachedByHash) {
+      return {
+        statusCode: 200,
+        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          success: true,
+          id: cachedByHash.id,
+          submissionNumber: cachedByHash.submissionNumber,
+          submittedAt: cachedByHash.submittedAt,
+          alreadyExisted: true,
+          message: 'Inzending reeds opgeslagen (dubbele klik genegeerd).',
+        }),
+      };
+    }
 
-    // Connect to Firestore via Firebase Admin SDK
-    const db = getFirebaseAdminFirestore();
-    const collectionRef = db.collection(TARGET_COLLECTION);
-
-    // 5. Duplicate submission prevention
-    // Check if the same submissionId already exists
     if (clientSubmissionId) {
-      const existingDoc = await collectionRef.doc(clientSubmissionId).get();
-      if (existingDoc.exists) {
-        const data = existingDoc.data();
+      const cachedById = recentSubmissionsCache.get(`id_${clientSubmissionId}`);
+      if (cachedById) {
         return {
           statusCode: 200,
           headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
           body: JSON.stringify({
             success: true,
-            id: existingDoc.id,
-            submissionNumber: data?.submissionNumber || 'WP-BESTAAND',
-            submittedAt: data?.submittedAt || submittedAt,
+            id: cachedById.id,
+            submissionNumber: cachedById.submissionNumber,
+            submittedAt: cachedById.submittedAt,
             alreadyExisted: true,
             message: 'Inzending was reeds geregistreerd.',
           }),
@@ -219,41 +239,22 @@ export const handler: Handler = async (event: HandlerEvent) => {
       }
     }
 
-    // Check recent duplicate hash within last 5 minutes to prevent rapid spam or double-clicks
-    try {
-      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-      const duplicateQuery = await collectionRef
-        .where('surveyId', '==', surveyId)
-        .where('duplicateHash', '==', duplicateHash)
-        .where('submittedAt', '>=', fiveMinutesAgo)
-        .limit(1)
-        .get();
+    // Client metadata (anonymized, no PII)
+    const userAgent = (event.headers['user-agent'] || '').slice(0, 255);
+    const clientIp =
+      event.headers['x-forwarded-for'] ||
+      event.headers['client-ip'] ||
+      'unknown';
+    const ipHash = sha256(clientIp).substring(0, 16);
 
-      if (!duplicateQuery.empty) {
-        const firstMatch = duplicateQuery.docs[0];
-        const data = firstMatch.data();
-        return {
-          statusCode: 200,
-          headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            success: true,
-            id: firstMatch.id,
-            submissionNumber: data?.submissionNumber || 'WP-BESTAAND',
-            submittedAt: data?.submittedAt || submittedAt,
-            alreadyExisted: true,
-            message: 'Inzending reeds opgeslagen (dubbele klik genegeerd).',
-          }),
-        };
-      }
-    } catch (queryErr) {
-      // In case compound query needs index or fails, proceed to normal write
-      console.warn('Duplicate query check notice:', queryErr);
-    }
+    // Connect to Firestore via optimized singleton Firebase Admin SDK
+    const db = getFirebaseAdminFirestore();
+    const collectionRef = db.collection(TARGET_COLLECTION);
 
     // 6. Generate unique submission number
     const uniqueSubmissionNumber = generateSubmissionNumber();
 
-    // 7. Construct complete document matching user requirements
+    // 7. Construct complete document matching all analytical requirements
     const submissionDoc = {
       submissionNumber: uniqueSubmissionNumber,
       surveyId,
@@ -273,17 +274,29 @@ export const handler: Handler = async (event: HandlerEvent) => {
         ipHash,
         source: 'woonpanel.com',
         env: process.env.NODE_ENV || 'production',
-        processedVia: 'Netlify Function (Firebase Admin SDK)',
+        processedVia: 'Netlify Function (Firebase Admin REST)',
       },
       status: 'submitted',
     };
 
-    // Store in Firestore using clientSubmissionId if provided, or generated doc ID
+    // Single direct atomic write to Firestore (0 unnecessary pre-reads)
     const targetDocRef = clientSubmissionId
       ? collectionRef.doc(clientSubmissionId)
       : collectionRef.doc();
 
     await targetDocRef.set(submissionDoc);
+
+    // Cache in memory to instantly suppress repeated clicks for the next 5 minutes
+    const cacheEntry: CachedSubmission = {
+      id: targetDocRef.id,
+      submissionNumber: uniqueSubmissionNumber,
+      submittedAt,
+      timestamp: Date.now(),
+    };
+    recentSubmissionsCache.set(duplicateHash, cacheEntry);
+    if (clientSubmissionId) {
+      recentSubmissionsCache.set(`id_${clientSubmissionId}`, cacheEntry);
+    }
 
     console.log(
       `Inzending succesvol opgeslagen in Firestore: ID=${targetDocRef.id}, Nummer=${uniqueSubmissionNumber}`

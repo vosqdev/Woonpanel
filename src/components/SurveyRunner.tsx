@@ -386,33 +386,9 @@ export const SurveyRunner: React.FC<SurveyRunnerProps> = ({
           </h2>
 
           {/* Required Exact Subtitle */}
-          <p className="text-stone-600 text-base sm:text-lg leading-relaxed mb-4 max-w-xl mx-auto">
+          <p className="text-stone-600 text-base sm:text-lg leading-relaxed mb-6 max-w-xl mx-auto">
             Dankzij jouw bijdrage krijgen we beter inzicht in hoe inwoners willen wonen en wat zij belangrijk vinden in hun leefomgeving.
           </p>
-
-          {/* Confetti button */}
-          <div className="mb-4">
-            <button
-              onClick={triggerConfettiCelebration}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-medium transition-colors cursor-pointer"
-            >
-              <span>🎊 Vier jouw afronding opnieuw (confetti)</span>
-            </button>
-          </div>
-
-          {/* Database confirmation badge & Unique Submission Number */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-6">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-medium font-mono">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>Opgeslagen in database (woonpanel-productie) · 100% anoniem verwerkt</span>
-            </div>
-            {submissionNumber && (
-              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-stone-100 text-stone-800 border border-stone-300 text-[11px] font-mono shadow-2xs">
-                <span className="text-stone-500">Inzending:</span>
-                <span className="font-bold text-stone-900">{submissionNumber}</span>
-              </div>
-            )}
-          </div>
 
           {/* Verwijzing naar inschrijven als panellid */}
           <div className="p-6 sm:p-7 bg-stone-900 text-white rounded-2xl border border-stone-800 text-left my-6 shadow-sm space-y-4">
