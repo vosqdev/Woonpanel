@@ -21,6 +21,11 @@ import {
   AdminUser,
   Question,
 } from './types/survey';
+import {
+  subscribeToPanelMembers,
+  subscribeToSubmissions,
+  saveSurveySubmission,
+} from './services/surveyService';
 
 export default function App() {
   const [surveys, setSurveys] = useState<Survey[]>(INITIAL_SURVEYS);
@@ -43,6 +48,7 @@ export default function App() {
   const [registeredMembersCount, setRegisteredMembersCount] = useState<number>(0);
 
   useEffect(() => {
+    // Initial local cache count
     try {
       const stored = localStorage.getItem('woondata_panel_members');
       if (stored) {
@@ -54,6 +60,32 @@ export default function App() {
     } catch (e) {
       // ignore
     }
+
+    // Real-time synchronization from Firebase Firestore (woonpanel-productie)
+    const unsubMembers = subscribeToPanelMembers((members) => {
+      if (members && members.length > 0) {
+        setRegisteredMembersCount(members.length);
+      }
+    });
+
+    const unsubSubmissions = subscribeToSubmissions((submissions) => {
+      if (submissions && submissions.length > 0) {
+        setSurveys((prev) =>
+          prev.map((s) => {
+            const countForSurvey = submissions.filter((sub) => sub.surveyId === s.id).length;
+            return {
+              ...s,
+              participantCount: Math.max(s.participantCount, countForSurvey),
+            };
+          })
+        );
+      }
+    });
+
+    return () => {
+      unsubMembers();
+      unsubSubmissions();
+    };
   }, []);
 
   const navigateTo = (view: string) => {
@@ -90,6 +122,11 @@ export default function App() {
   };
 
   const handleFinishSubmission = (submission: SurveySubmission, summary?: WoonscanSummary) => {
+    // Ensure saved to Firebase Firestore
+    saveSurveySubmission(submission).catch((err) => {
+      console.error('Save to Firestore failed in App:', err);
+    });
+
     // Increment participant count in active surveys
     setSurveys((prev) =>
       prev.map((s) => {

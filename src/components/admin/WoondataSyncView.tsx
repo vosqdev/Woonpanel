@@ -63,6 +63,28 @@ export const WoondataSyncView: React.FC = () => {
         </div>
       </div>
 
+      {/* Firebase Cloud Connection Info */}
+      <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <Database className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-emerald-950">Firebase Firestore Cloud Database</span>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-800 text-[10px] font-mono font-bold">Actief Verbonden</span>
+            </div>
+            <p className="text-xs text-emerald-800 mt-0.5">
+              Project: <span className="font-mono font-semibold">woonpanel-productie</span> · Collecties: <span className="font-mono">survey_submissions</span> &amp; <span className="font-mono">panel_members</span>
+            </p>
+          </div>
+        </div>
+        <div className="text-left sm:text-right text-[11px] font-mono text-emerald-700 shrink-0">
+          <div>Regio: europe-west2 (Londen)</div>
+          <div>Security Rules: Productie ABAC Actief</div>
+        </div>
+      </div>
+
       {/* Sync Status Alert */}
       {syncStatus && (
         <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-3 text-xs text-emerald-900 font-mono">

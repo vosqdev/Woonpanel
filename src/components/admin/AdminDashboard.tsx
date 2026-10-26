@@ -30,6 +30,8 @@ import {
   Sparkles,
   Search,
 } from 'lucide-react';
+import { subscribeToPanelMembers, subscribeToSubmissions } from '../../services/surveyService';
+import { SurveySubmission } from '../../types/survey';
 
 interface Props {
   surveys: Survey[];
@@ -61,8 +63,10 @@ export const AdminDashboard: React.FC<Props> = ({
   }, [initialTab]);
 
   const [panelMembers, setPanelMembers] = useState<any[]>([]);
+  const [liveSubmissions, setLiveSubmissions] = useState<SurveySubmission[]>([]);
 
   useEffect(() => {
+    // Initial local cache
     try {
       const stored = localStorage.getItem('woondata_panel_members');
       if (stored) {
@@ -71,7 +75,26 @@ export const AdminDashboard: React.FC<Props> = ({
     } catch (e) {
       // ignore
     }
-  }, [activeTab]);
+
+    // Subscribe to Firebase Firestore panel_members collection
+    const unsubMembers = subscribeToPanelMembers((members) => {
+      if (members && members.length > 0) {
+        setPanelMembers(members);
+      }
+    });
+
+    // Subscribe to Firebase Firestore survey_submissions collection
+    const unsubSubmissions = subscribeToSubmissions((submissions) => {
+      if (submissions && submissions.length > 0) {
+        setLiveSubmissions(submissions);
+      }
+    });
+
+    return () => {
+      unsubMembers();
+      unsubSubmissions();
+    };
+  }, []);
 
   const [selectedBuilderSurveyId, setSelectedBuilderSurveyId] = useState<string>(
     surveys[0]?.id || ''
@@ -465,6 +488,75 @@ export const AdminDashboard: React.FC<Props> = ({
                           </td>
                           <td className="py-3.5 px-6 text-stone-500 font-mono text-[11px]">
                             {m.registeredAt ? new Date(m.registeredAt).toLocaleDateString('nl-NL') : '-'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Live Firebase Survey Inzendingen Table */}
+            <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-2xs">
+              <div className="p-6 border-b border-stone-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-bold text-[#171717]">
+                      Live Ingevulde Enquêtes &amp; Onderzoeken (Firebase: survey_submissions)
+                    </h3>
+                    <span className="px-2 py-0.5 rounded-full text-[11px] font-mono font-bold bg-emerald-100 text-emerald-800">
+                      {liveSubmissions.length} opgeslagen
+                    </span>
+                  </div>
+                  <p className="text-xs text-stone-500 mt-0.5">
+                    Gekoppeld aan project <span className="font-mono font-semibold">woonpanel-productie</span> · 100% geanonimiseerde antwoorden
+                  </p>
+                </div>
+              </div>
+
+              {liveSubmissions.length === 0 ? (
+                <div className="p-8 text-center text-stone-500 text-xs">
+                  Er zijn momenteel nog geen nieuwe inzendingen geregistreerd in Firestore. Vul een onderzoek in via de publiekswebsite om direct een live reactie hier te zien verschijnen.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-stone-50 text-stone-500 uppercase tracking-wider font-mono border-b border-stone-200">
+                      <tr>
+                        <th className="py-3 px-6">Inzending ID</th>
+                        <th className="py-3 px-6">Onderzoek ID</th>
+                        <th className="py-3 px-6">Categorie</th>
+                        <th className="py-3 px-6">Antwoorden</th>
+                        <th className="py-3 px-6">Tijdstip</th>
+                        <th className="py-3 px-6">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-stone-100">
+                      {liveSubmissions.map((sub, idx) => (
+                        <tr key={sub.id || idx} className="hover:bg-stone-50/70">
+                          <td className="py-3.5 px-6 font-mono text-[11px] font-bold text-[#171717]">
+                            {sub.id}
+                          </td>
+                          <td className="py-3.5 px-6 text-stone-700 font-mono text-[11px]">
+                            {sub.surveyId}
+                          </td>
+                          <td className="py-3.5 px-6">
+                            <span className="px-2 py-0.5 rounded-full bg-stone-100 text-stone-800 text-[10px] font-mono uppercase font-bold">
+                              {sub.category}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-6 font-mono text-stone-600">
+                            {Object.keys(sub.answers || {}).length} vragen beantwoord
+                          </td>
+                          <td className="py-3.5 px-6 font-mono text-stone-500 text-[11px]">
+                            {sub.submittedAt ? new Date(sub.submittedAt).toLocaleString('nl-NL') : '-'}
+                          </td>
+                          <td className="py-3.5 px-6">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-mono font-bold">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                              Opgeslagen
+                            </span>
                           </td>
                         </tr>
                       ))}

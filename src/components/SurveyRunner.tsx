@@ -6,6 +6,7 @@ import {
   SurveySubmission,
   WoonscanSummary,
 } from '../types/survey';
+import { saveSurveySubmission } from '../services/surveyService';
 import { SingleChoiceQuestion } from './questions/SingleChoiceQuestion';
 import { MultipleChoiceQuestion } from './questions/MultipleChoiceQuestion';
 import { SliderQuestion } from './questions/SliderQuestion';
@@ -59,6 +60,7 @@ export const SurveyRunner: React.FC<SurveyRunnerProps> = ({
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
   const [calculatedSummary, setCalculatedSummary] = useState<WoonscanSummary | null>(null);
   const [saveStatus, setSaveStatus] = useState<string>('Opgeslagen');
+  const [submissionNumber, setSubmissionNumber] = useState<string>('');
 
   // Filter questions based on conditional logic
   const activeQuestions = useMemo(() => {
@@ -215,17 +217,43 @@ export const SurveyRunner: React.FC<SurveyRunnerProps> = ({
       setCalculatedSummary(summary);
     }
 
+    // Build structured questions and answers for Firestore storage
+    const structuredResponses = survey.questions.map((q) => {
+      const val = answers[q.id];
+      let label: string | undefined;
+      if (q.options && val) {
+        if (Array.isArray(val)) {
+          const matching = q.options.filter((o) => val.includes(o.id)).map((o) => o.label);
+          if (matching.length > 0) label = matching.join(', ');
+        } else {
+          const match = q.options.find((o) => o.id === val);
+          if (match) label = match.label;
+        }
+      }
+      return {
+        questionId: q.id,
+        questionTitle: q.title,
+        questionType: q.type,
+        value: val !== undefined ? val : null,
+        label,
+      };
+    });
+
     const submission: SurveySubmission = {
       id: `sub_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       surveyId: survey.id,
       category: survey.category,
+      surveyType: survey.category,
+      surveyTitle: survey.title,
+      surveyVersion: '1.0.0',
       submittedAt: new Date().toISOString(),
       anonymousRespondentId: `resp_hash_${Math.random().toString(36).substring(2, 9)}`,
       cbsBuurtCode: survey.location.cbsCode,
       answers,
+      responses: structuredResponses,
     };
 
-    // Trigger confetti
+    // Trigger celebratory confetti
     try {
       confetti({
         particleCount: 80,
@@ -236,6 +264,17 @@ export const SurveyRunner: React.FC<SurveyRunnerProps> = ({
     } catch (e) {
       // ignore
     }
+
+    // Secure opslaan in Firebase Firestore via Netlify Function & Firebase Admin SDK
+    saveSurveySubmission(submission)
+      .then((res) => {
+        if (res.submissionNumber) {
+          setSubmissionNumber(res.submissionNumber);
+        }
+      })
+      .catch((err) => {
+        console.error('Firebase save error in SurveyRunner:', err);
+      });
 
     setIsCompleted(true);
     onFinishSubmission(submission, summary);
@@ -335,13 +374,27 @@ export const SurveyRunner: React.FC<SurveyRunnerProps> = ({
           </p>
 
           {/* Confetti button */}
-          <div className="mb-6">
+          <div className="mb-4">
             <button
               onClick={triggerConfettiCelebration}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-medium transition-colors cursor-pointer"
             >
               <span>🎊 Vier jouw afronding opnieuw (confetti)</span>
             </button>
+          </div>
+
+          {/* Database confirmation badge & Unique Submission Number */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-6">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-medium font-mono">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Opgeslagen in database (woonpanel-productie) · 100% anoniem verwerkt</span>
+            </div>
+            {submissionNumber && (
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-stone-100 text-stone-800 border border-stone-300 text-[11px] font-mono shadow-2xs">
+                <span className="text-stone-500">Inzending:</span>
+                <span className="font-bold text-stone-900">{submissionNumber}</span>
+              </div>
+            )}
           </div>
 
           {/* Verwijzing naar inschrijven als panellid */}

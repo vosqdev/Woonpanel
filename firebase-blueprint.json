@@ -1,0 +1,102 @@
+{
+  "entities": {
+    "SurveySubmission": {
+      "title": "SurveySubmission",
+      "description": "Anoniem ingevulde woonwensen of woononderzoek enquête voor gemeente Dronten / Woondata",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unieke identificatie van de inzending"
+        },
+        "surveyId": {
+          "type": "string",
+          "description": "ID van het onderzoek (bijv. survey_dronten_woonwensen_2025)"
+        },
+        "category": {
+          "type": "string",
+          "description": "Categorie van het onderzoek",
+          "enum": ["woonwensen", "woonscan", "woonopinie"]
+        },
+        "submittedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 tijdstempel van de inzending"
+        },
+        "anonymousRespondentId": {
+          "type": "string",
+          "description": "Geanonimiseerde hash van de respondent ter voorkoming van dubbeltellingen"
+        },
+        "cbsBuurtCode": {
+          "type": "string",
+          "description": "Optionele CBS wijk- of buurtcode"
+        },
+        "municipality": {
+          "type": "string",
+          "description": "Gemeente waar het onderzoek betrekking op heeft"
+        },
+        "answers": {
+          "type": "object",
+          "description": "De gegeven antwoorden per vraag-id"
+        }
+      },
+      "required": ["surveyId", "category", "submittedAt", "answers"]
+    },
+    "PanelMember": {
+      "title": "PanelMember",
+      "description": "Aanmelding van een inwoner voor het Woondata Woonpanel Dronten",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unieke identificatie van het panellid"
+        },
+        "firstName": {
+          "type": "string",
+          "description": "Voornaam van het panellid"
+        },
+        "lastName": {
+          "type": "string",
+          "description": "Achternaam van het panellid"
+        },
+        "fullName": {
+          "type": "string",
+          "description": "Volledige naam van het panellid"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "E-mailadres van het panellid"
+        },
+        "privacyAgreed": {
+          "type": "boolean",
+          "description": "Akkoord met privacy- en gegevensverwerkingsbeleid"
+        },
+        "newsletterOptIn": {
+          "type": "boolean",
+          "description": "Opt-in voor updates over onderzoeken en trends in de gemeente"
+        },
+        "municipality": {
+          "type": "string",
+          "description": "Gemeente van het panellid"
+        },
+        "registeredAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 tijdstempel van inschrijving"
+        }
+      },
+      "required": ["firstName", "lastName", "email", "privacyAgreed", "registeredAt"]
+    }
+  },
+  "firestore": {
+    "/survey_submissions/{submissionId}": {
+      "schema": "SurveySubmission",
+      "description": "Collectie met ingevulde onderzoeken en enquêtes"
+    },
+    "/panel_members/{memberId}": {
+      "schema": "PanelMember",
+      "description": "Collectie met aangemelde panelleden"
+    }
+  }
+}

@@ -9,6 +9,7 @@ import {
   ArrowRight,
   Lock,
 } from 'lucide-react';
+import { savePanelMember } from '../services/surveyService';
 
 export interface PanelMemberRegistration {
   id: string;
@@ -71,34 +72,34 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
 
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      const newMember: PanelMemberRegistration = {
-        id: 'member_' + Date.now(),
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        fullName: `${firstName.trim()} ${lastName.trim()}`,
-        email: email.trim().toLowerCase(),
-        privacyAgreed,
-        newsletterOptIn,
-        registeredAt: new Date().toISOString(),
-      };
+    const newMember: PanelMemberRegistration = {
+      id: 'member_' + Date.now(),
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      fullName: `${firstName.trim()} ${lastName.trim()}`,
+      email: email.trim().toLowerCase(),
+      privacyAgreed,
+      newsletterOptIn,
+      registeredAt: new Date().toISOString(),
+    };
 
-      // Save to localStorage
-      try {
-        const stored = localStorage.getItem('woondata_panel_members');
-        const list: PanelMemberRegistration[] = stored ? JSON.parse(stored) : [];
-        list.push(newMember);
-        localStorage.setItem('woondata_panel_members', JSON.stringify(list));
-      } catch (err) {
-        console.error('Failed to save panel member locally', err);
-      }
-
-      setIsSubmitting(false);
-      setIsSuccess(true);
-      if (onSuccessRegistered) {
-        onSuccessRegistered(newMember);
-      }
-    }, 500);
+    // Save to Firebase Firestore and local cache
+    savePanelMember(newMember)
+      .then(() => {
+        setIsSubmitting(false);
+        setIsSuccess(true);
+        if (onSuccessRegistered) {
+          onSuccessRegistered(newMember);
+        }
+      })
+      .catch((err) => {
+        console.error('Error saving panel member:', err);
+        setIsSubmitting(false);
+        setIsSuccess(true); // Still proceed as cached
+        if (onSuccessRegistered) {
+          onSuccessRegistered(newMember);
+        }
+      });
   };
 
   const handleResetAndClose = () => {

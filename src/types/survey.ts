@@ -111,14 +111,27 @@ export interface SurveyAnswer {
   timestamp: string;
 }
 
+export interface SurveySubmissionResponseItem {
+  questionId: string;
+  questionTitle?: string;
+  questionType?: string;
+  value: any;
+  label?: string;
+}
+
 export interface SurveySubmission {
   id: string;
   surveyId: string;
   category: SurveyCategory;
+  surveyType?: string;
+  surveyTitle?: string;
+  surveyVersion?: string;
+  submissionNumber?: string;
   submittedAt: string;
   anonymousRespondentId: string;
   cbsBuurtCode?: string;
   answers: Record<string, any>;
+  responses?: SurveySubmissionResponseItem[];
   contactProvided?: boolean;
 }
 
