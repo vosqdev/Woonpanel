@@ -195,7 +195,18 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
             </div>
           ) : (
             /* Simplified Registration Form */
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form
+              name="aanmelding-panellid"
+              method="POST"
+              data-netlify="true"
+              data-netlify-honeypot="bot-field"
+              onSubmit={handleSubmit}
+              className="space-y-5"
+            >
+              <input type="hidden" name="form-name" value="aanmelding-panellid" />
+              <input type="hidden" name="bot-field" />
+              <input type="hidden" name="ontvanger" value="info@woondata.com" />
+
               {errorMessage && (
                 <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
                   {errorMessage}
@@ -211,6 +222,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                   </label>
                   <input
                     type="text"
+                    name="voornaam"
                     required
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
@@ -226,6 +238,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                   </label>
                   <input
                     type="text"
+                    name="achternaam"
                     required
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
@@ -243,6 +256,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                 </label>
                 <input
                   type="email"
+                  name="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -256,6 +270,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                 <label className="flex items-start gap-3 text-xs text-stone-700 cursor-pointer select-none">
                   <input
                     type="checkbox"
+                    name="privacyAgreed"
                     checked={privacyAgreed}
                     onChange={(e) => setPrivacyAgreed(e.target.checked)}
                     className="mt-0.5 w-4 h-4 rounded border-stone-300 text-[#171717] accent-[#171717] cursor-pointer"
@@ -268,6 +283,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                 <label className="flex items-start gap-3 text-xs text-stone-600 cursor-pointer select-none">
                   <input
                     type="checkbox"
+                    name="nieuwsbrief"
                     checked={newsletterOptIn}
                     onChange={(e) => setNewsletterOptIn(e.target.checked)}
                     className="mt-0.5 w-4 h-4 rounded border-stone-300 text-[#171717] accent-[#171717] cursor-pointer"

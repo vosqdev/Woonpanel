@@ -146,6 +146,32 @@ export async function savePanelMember(
     if (response.ok) {
       const result = await response.json();
 
+      // Submit also to Netlify Forms for automated email notification to info@woondata.com
+      try {
+        const netlifyFormData = new URLSearchParams();
+        netlifyFormData.append('form-name', 'aanmelding-panellid');
+        netlifyFormData.append('voornaam', member.firstName);
+        netlifyFormData.append('achternaam', member.lastName);
+        netlifyFormData.append('email', member.email);
+        netlifyFormData.append('volledige_naam', member.fullName);
+        netlifyFormData.append('nieuwsbrief', member.newsletterOptIn ? 'Ja' : 'Nee');
+        netlifyFormData.append('datum_aanmelding', member.registeredAt);
+        netlifyFormData.append('bron', 'woonpanel.com');
+        netlifyFormData.append('gemeente', 'Dronten');
+        netlifyFormData.append('ontvanger', 'info@woondata.com');
+
+        await fetch('/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: netlifyFormData.toString(),
+        });
+      } catch (formErr) {
+        // Non-blocking fallback
+        console.warn('[SurveyService] Netlify Form dispatch notice:', formErr);
+      }
+
       try {
         const stored = localStorage.getItem('woondata_panel_members');
         const list = stored ? JSON.parse(stored) : [];

@@ -17,6 +17,21 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   </head>
   <body>
+    <!-- Netlify Forms definitie voor automatische registratie en e-mailnotificaties naar info@woondata.com -->
+    <form name="aanmelding-panellid" data-netlify="true" netlify-honeypot="bot-field" hidden>
+      <input type="hidden" name="form-name" value="aanmelding-panellid" />
+      <input type="hidden" name="bot-field" />
+      <input type="text" name="voornaam" />
+      <input type="text" name="achternaam" />
+      <input type="email" name="email" />
+      <input type="text" name="volledige_naam" />
+      <input type="text" name="nieuwsbrief" />
+      <input type="text" name="datum_aanmelding" />
+      <input type="text" name="bron" value="woonpanel.com" />
+      <input type="text" name="gemeente" value="Dronten" />
+      <input type="email" name="ontvanger" value="info@woondata.com" />
+    </form>
+
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
