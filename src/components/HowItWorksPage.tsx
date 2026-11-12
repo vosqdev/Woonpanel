@@ -61,17 +61,55 @@ export const HowItWorksPage: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Hoe data gebruikt wordt: Standaard website tekst (niet omkaderd, geen andere achtergrondkleuren) */}
-          <div className="space-y-3 pt-2">
-            <h2 className="text-xl sm:text-2xl font-bold text-[#171717] tracking-tight">
-              Hoe de data van de onderzoeken gebruikt wordt
-            </h2>
-            <p className="text-base text-stone-700 leading-relaxed">
-              De resultaten uit de woononderzoeken blijven niet op zichzelf staan; deze worden gebruikt voor woondata.com. Bij Woondata.com worden de uitkomsten van het panel gecombineerd met openbare en lokale data en marktinformatie. Zo ontstaat een compleet en betrouwbaarder beeld van de werkelijke behoefte en vraag in de woningmarkt van de gemeente Dronten.
-            </p>
-            <p className="text-sm sm:text-base text-stone-600 leading-relaxed">
-              De onderzoeksresultaten worden uitsluitend via de beheeromgeving beschikbaar gesteld aan woondata.com om zo markt en openbare data samen te laten komen.
-            </p>
+          {/* Kernsectie: Waarom, Voor wie & Van wie */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2">
+            {/* Waarom meedoen */}
+            <div className="p-6 rounded-2xl bg-stone-50 border border-stone-200 flex flex-col justify-between space-y-3">
+              <div>
+                <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-emerald-700 mb-1 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+                  <span>100% Input & Altijd Anoniem</span>
+                </div>
+                <h3 className="text-lg font-bold text-[#171717] mb-2">
+                  Waarom meedoen?
+                </h3>
+                <p className="text-sm text-stone-700 leading-relaxed">
+                  Meedoen is anoniem: niemand kan zien wat jij persoonlijk hebt ingevuld. De informatie wordt gedeeld met woondata.com. Daar voegen we alle reacties samen met lokale marktkennis. Zo komt alles op één hoop om te laten zien wat inwoners belangrijk vinden. Zo kun je meedenken over de woningmarkt en blijven jouw gegevens altijd privé en veilig via Woondata.
+                </p>
+              </div>
+            </div>
+
+            {/* Voor wie doe ik het */}
+            <div className="p-6 rounded-2xl bg-stone-50 border border-stone-200 flex flex-col justify-between space-y-3">
+              <div>
+                <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-stone-500 mb-1 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#171717]"></span>
+                  <span>Jouw wijk & gemeente</span>
+                </div>
+                <h3 className="text-lg font-bold text-[#171717] mb-2">
+                  Voor wie doe je het?
+                </h3>
+                <p className="text-sm text-stone-700 leading-relaxed">
+                  Voor jouw eigen dorp, wijk en leefomgeving. Met jouw reactie help je de gemeente, woningcorporatie en ontwikkelaars om betere keuzes te maken en woningen te bouwen die écht aansluiten bij wat inwoners nodig hebben.
+                </p>
+              </div>
+            </div>
+
+            {/* Van wie is het */}
+            <div className="p-6 rounded-2xl bg-stone-50 border border-stone-200 flex flex-col justify-between space-y-3">
+              <div>
+                <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-stone-500 mb-1 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#C4F000] border border-stone-800"></span>
+                  <span>Onafhankelijk</span>
+                </div>
+                <h3 className="text-lg font-bold text-[#171717] mb-2">
+                  Van wie is Woonpanel?
+                </h3>
+                <p className="text-sm text-stone-700 leading-relaxed">
+                  Woonpanel is een onafhankelijk burgerinitiatief van Woondata.com, om inwoners een directe en betrouwbare stem te geven in de woningmarkt, zonder commerciële belangen.
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* De 3 stappen in één energiek, begrijpelijk en overzichtelijk stappenplan */}
@@ -223,10 +261,10 @@ export const HowItWorksPage: React.FC<Props> = ({
               </div>
               <div className="space-y-1">
                 <div className="text-xs font-bold text-[#171717] uppercase font-mono tracking-wider">
-                  100% Veilig & Altijd Anoniem
+                  100% Input & Altijd Anoniem
                 </div>
                 <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-                  Meedoen is altijd anoniem: niemand kan zien wat jij persoonlijk hebt ingevuld. We voegen alle reacties samen op één hoop om te laten zien wat inwoners belangrijk vinden. Zo blijven jouw gegevens altijd privé en veilig via Woondata.
+                  Meedoen is anoniem: niemand kan zien wat jij persoonlijk hebt ingevuld. De informatie wordt gedeeld met woondata.com. Daar voegen we alle reacties samen met lokale marktkennis. Zo komt alles op één hoop om te laten zien wat inwoners belangrijk vinden. Zo kun je meedenken over de woningmarkt en blijven jouw gegevens altijd privé en veilig via Woondata.
                 </p>
               </div>
             </div>

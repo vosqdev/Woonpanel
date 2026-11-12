@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   UserPlus,
@@ -7,7 +7,6 @@ import {
   Mail,
   User,
   ArrowRight,
-  Lock,
 } from 'lucide-react';
 import { savePanelMember } from '../services/surveyService';
 
@@ -44,6 +43,20 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [alreadyRegistered, setAlreadyRegistered] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      try {
+        const isReg = localStorage.getItem('woondata_panel_registered');
+        if (isReg) {
+          setAlreadyRegistered(true);
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -86,6 +99,13 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
     // Save to Firebase Firestore and local cache
     savePanelMember(newMember)
       .then(() => {
+        try {
+          localStorage.setItem('woondata_panel_registered', 'true');
+          localStorage.setItem('woondata_panel_registered_email', newMember.email);
+        } catch {
+          // ignore
+        }
+        setAlreadyRegistered(true);
         setIsSubmitting(false);
         setIsSuccess(true);
         if (onSuccessRegistered) {
@@ -94,6 +114,12 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
       })
       .catch((err) => {
         console.error('Error saving panel member:', err);
+        try {
+          localStorage.setItem('woondata_panel_registered', 'true');
+        } catch {
+          // ignore
+        }
+        setAlreadyRegistered(true);
         setIsSubmitting(false);
         setIsSuccess(true); // Still proceed as cached
         if (onSuccessRegistered) {
@@ -154,11 +180,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                   Welkom bij het panel, {firstName}!
                 </h3>
                 <p className="text-sm text-stone-600 leading-relaxed max-w-sm mx-auto">
-                  Je aanmelding voor het Woondata Woonpanel is succesvol ontvangen. We hebben een bevestigingsmail gestuurd naar{' '}
-                  <span className="font-mono text-xs font-semibold text-stone-800">
-                    {email}
-                  </span>
-                  .
+                  Je aanmelding voor het Woondata Woonpanel is succesvol ontvangen. Hartelijk dank voor je registratie en betrokkenheid!
                 </p>
               </div>
 
@@ -182,6 +204,56 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                     className="flex-1 inline-flex items-center justify-center gap-2 py-3 px-4 bg-[#C4F000] hover:bg-[#b5de00] text-[#171717] rounded-xl text-sm font-bold transition-colors cursor-pointer shadow-xs"
                   >
                     <span>Direct meedoen aan onderzoek</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                )}
+                <button
+                  onClick={handleResetAndClose}
+                  className="flex-1 py-3 px-4 bg-stone-100 hover:bg-stone-200 text-[#171717] rounded-xl text-sm font-semibold transition-colors cursor-pointer"
+                >
+                  Sluiten
+                </button>
+              </div>
+            </div>
+          ) : alreadyRegistered ? (
+            /* Already Registered State (Prevents Research Pollution) */
+            <div className="py-6 text-center space-y-6">
+              <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto shadow-xs">
+                <CheckCircle2 className="w-9 h-9" />
+              </div>
+
+              <div className="space-y-2">
+                <div className="text-xs font-mono font-semibold uppercase tracking-wider text-emerald-700">
+                  Reeds aangemeld
+                </div>
+                <h3 className="text-2xl font-extrabold text-[#171717]">
+                  Je bent al aangemeld als panellid
+                </h3>
+                <p className="text-sm text-stone-600 leading-relaxed max-w-sm mx-auto">
+                  Om vervuiling van onderzoeken en gegevens te voorkomen, kan het aanmeldformulier slechts één keer per apparaat worden ingediend. Hartelijk dank voor je eerdere aanmelding!
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 text-left text-xs text-stone-600 space-y-1.5">
+                <div className="flex items-center gap-2 font-bold text-stone-900 mb-1">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <span>Wat kun je nu doen?</span>
+                </div>
+                <p>
+                  Je gegevens staan al veilig opgeslagen. Je kunt direct deelnemen aan lopende onderzoeken om jouw woonwensen door te geven.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                {onStartActiveSurvey && (
+                  <button
+                    onClick={() => {
+                      handleResetAndClose();
+                      onStartActiveSurvey();
+                    }}
+                    className="flex-1 inline-flex items-center justify-center gap-2 py-3 px-4 bg-[#C4F000] hover:bg-[#b5de00] text-[#171717] rounded-xl text-sm font-bold transition-colors cursor-pointer shadow-xs"
+                  >
+                    <span>Bekijk actieve onderzoeken</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 )}
@@ -294,36 +366,29 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                 </label>
               </div>
 
-              {/* Security note & Buttons */}
-              <div className="pt-4 border-t border-stone-100 space-y-3">
-                <div className="text-[11px] text-stone-500 flex items-center gap-1.5">
-                  <Lock className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Gegevens worden niet verkocht of gedeeld met andere partijen.</span>
-                </div>
-
-                <div className="flex items-center justify-end gap-3 pt-1">
-                  <button
-                    type="button"
-                    onClick={handleResetAndClose}
-                    className="px-5 py-2.5 text-xs font-semibold text-stone-600 hover:text-stone-900 hover:bg-stone-100 rounded-xl transition-colors cursor-pointer"
-                  >
-                    annuleren
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="inline-flex items-center justify-center gap-2 px-6 py-2.5 text-xs font-bold text-[#171717] bg-[#C4F000] hover:bg-[#b5de00] active:scale-[0.99] rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-60"
-                  >
-                    {isSubmitting ? (
-                      <span>Verwerken...</span>
-                    ) : (
-                      <>
-                        <span>aanmelden voltooien</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </>
-                    )}
-                  </button>
-                </div>
+              {/* Action Buttons */}
+              <div className="pt-4 border-t border-stone-100 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={handleResetAndClose}
+                  className="px-5 py-2.5 text-xs font-semibold text-stone-600 hover:text-stone-900 hover:bg-stone-100 rounded-xl transition-colors cursor-pointer"
+                >
+                  annuleren
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-2.5 text-xs font-bold text-[#171717] bg-[#C4F000] hover:bg-[#b5de00] active:scale-[0.99] rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-60"
+                >
+                  {isSubmitting ? (
+                    <span>Verwerken...</span>
+                  ) : (
+                    <>
+                      <span>aanmelden voltooien</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </>
+                  )}
+                </button>
               </div>
             </form>
           )}

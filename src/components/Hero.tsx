@@ -38,7 +38,7 @@ export const Hero: React.FC<HeroProps> = ({
           {/* Required Exact Subtitle */}
           <p className="text-lg sm:text-xl text-white leading-relaxed font-medium mb-8 text-pretty max-w-3xl drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]">
             Hoe wil jij wonen? Hoe prettig woon je nu? En wat vind je van de plannen voor jouw buurt?
-            Met jouw antwoorden helpen we gemeenten, woningcorporaties en ontwikkelaars om betere keuzes te maken voor de woningen en leefomgeving van morgen.
+            Met jouw antwoorden helpen we gemeente, woningcorporatie en ontwikkelaar om betere keuzes te maken voor de woningen en leefomgeving van morgen.
           </p>
 
           {/* CTAs: Alle 3 knoppen strak naast elkaar in één lijn */}

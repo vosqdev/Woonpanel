@@ -58,6 +58,13 @@ export const SurveyRunner: React.FC<SurveyRunnerProps> = ({
     return {};
   });
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
+  const [alreadyCompleted] = useState<boolean>(() => {
+    try {
+      return Boolean(localStorage.getItem(`woondata_survey_completed_${survey.id}`));
+    } catch {
+      return false;
+    }
+  });
   const [calculatedSummary, setCalculatedSummary] = useState<WoonscanSummary | null>(null);
   const [saveStatus, setSaveStatus] = useState<string>('Opgeslagen');
   const [submissionNumber, setSubmissionNumber] = useState<string>('');
@@ -285,6 +292,10 @@ export const SurveyRunner: React.FC<SurveyRunnerProps> = ({
         onFinishSubmission(submission, summary);
         try {
           localStorage.removeItem(storageKey);
+          localStorage.setItem(`woondata_survey_completed_${survey.id}`, JSON.stringify({
+            completedAt: new Date().toISOString(),
+            submissionNumber: res.submissionNumber || submission.id,
+          }));
         } catch {
           // ignore
         }
@@ -455,6 +466,51 @@ export const SurveyRunner: React.FC<SurveyRunnerProps> = ({
               className="w-full sm:w-auto px-6 py-3.5 bg-[#171717] hover:bg-black text-white font-bold text-sm rounded-xl transition-all cursor-pointer shadow-xs"
             >
               Bekijk andere onderzoeken
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // Already completed check to prevent research data pollution
+  if (alreadyCompleted && !isCompleted) {
+    return (
+      <main className="min-h-[75vh] py-16 px-4 sm:px-6 flex items-center justify-center">
+        <div className="max-w-xl w-full bg-white rounded-3xl border border-stone-200 p-8 sm:p-10 text-center shadow-lg animate-in fade-in zoom-in-95 duration-200 space-y-6">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto shadow-xs">
+            <CheckCircle2 className="w-9 h-9 stroke-[2.5]" />
+          </div>
+
+          <div className="space-y-2">
+            <div className="text-xs font-mono font-semibold uppercase tracking-wider text-emerald-700">
+              Onderzoek reeds afgerond
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#171717] tracking-tight">
+              Je hebt dit onderzoek al ingevuld
+            </h2>
+            <p className="text-sm sm:text-base text-stone-600 leading-relaxed max-w-md mx-auto">
+              Om vervuiling van de onderzoeksresultaten te voorkomen, kan elk onderzoek slechts één keer per apparaat worden ingediend. Jouw antwoorden zijn al veilig en anoniem verwerkt.
+            </p>
+          </div>
+
+          <div className="p-4 sm:p-5 rounded-2xl bg-stone-50 border border-stone-200 text-left text-xs sm:text-sm text-stone-600 space-y-2">
+            <div className="flex items-center gap-2 font-bold text-stone-900">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Betrouwbare burgerparticipatie</span>
+            </div>
+            <p className="leading-relaxed">
+              Door dubbele inzendingen te voorkomen, garandeert het Woondata Woonpanel zuivere en betrouwbare data voor beleidsmakers, woningcorporaties en bouwers.
+            </p>
+          </div>
+
+          <div className="pt-2">
+            <button
+              onClick={onBackToHome}
+              className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-5 bg-[#C4F000] hover:bg-[#b5de00] text-[#171717] rounded-xl text-sm font-bold transition-all cursor-pointer shadow-xs"
+            >
+              <span>Terug naar overzicht</span>
+              <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </div>

@@ -193,7 +193,7 @@ export const INITIAL_SURVEYS: Survey[] = [
         id: 'ww_3_totale_maandlasten',
         stepTitle: 'Stap 3: Financiële kaders & woonlasten',
         title: '12. Wat mogen uw totale maandelijkse woonlasten maximaal bedragen?',
-        subtitle: 'Let op: Dit betreft de totale lasten inclusief hypotheek/huur, energie en eventuele servicekosten. Dit geeft een realistischer beeld dan alleen een maximale koopsom.',
+        subtitle: 'Let op: dit gaat om een nieuwbouwwoning (dus een gloednieuwe woning en géén bestaand huis). Een nieuwbouwwoning is optimaal geïsoleerd en heeft een warmtepomp en zonnepanelen. Daardoor heeft u lagere maandelijkse energiekosten. Het bedrag dat u hier kiest, is het totale bedrag dat u per maand kunt of wilt betalen aan kale huur of hypotheek, plus energie en eventuele servicekosten (zoals voor een lift of trappenhuis bij een appartement).',
         type: 'single_choice',
         required: true,
         columns: 2,
